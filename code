@@ -1,0 +1,77 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+// Define the pins for the sensors
+const int soilMoisturePin = A0;
+const int lightSensorPin = A1;
+const int relay1Pin = 8;
+const int relay2Pin = 9;
+// Create objects for the sensors
+DHT dht(3, DHT11);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+// Initialize the variables
+int soilMoistureV alue = 0;
+int lightSensorV alue = 0;
+float temperature = 0;
+float humidity = 0;
+// Setup function
+void setup() {
+// Initialize the serial port
+Serial.begin(9600);
+// Initialize the sensors
+dht.begin();
+lcd.begin(16, 2);
+lcd.init();
+lcd.clear(); // Clear the display
+lcd.backlight(); // Turn on the backlight
+// Set the output pins as outputs
+pinMode(relay1Pin, OUTPUT);
+pinMode(relay2Pin, OUTPUT);
+}
+// Loop function
+void loop() {
+// Read the values from the sensors
+soilMoistureV alue = analogRead(soilMoisturePin);
+lightSensorV alue = analogRead(lightSensorPin);
+
+temperature = dht.readTemperature();
+humidity = dht.readHumidity();
+lcd.setCursor(0, 0);
+lcd.print("Soil moisture: ");
+lcd.print(soilMoistureV alue);
+lcd.print("%");
+lcd.setCursor(0, 1);
+lcd.print("Light sensor: ");
+lcd.print(lightSensorV alue);
+lcd.print("%");
+delay(1000);
+lcd.clear();
+lcd.setCursor(0, 0);
+lcd.print("Temp: ");
+lcd.print(temperature);
+lcd.setCursor(0, 1);
+lcd.print("Humidity");
+lcd.print(humidity);
+delay(1100);
+Serial.println(temperature);
+Serial.println(humidity);
+// Check the soil moisture value and activate the relays accordingly
+if (soilMoistureV alue < 100) {
+// Soil is dry, activate relay 1 to water the plant
+digitalWrite(relay1Pin, HIGH);
+} else {
+// Soil is moist, deactivate relay 1
+digitalWrite(relay1Pin, LOW);
+}
+// Check the light sensor value and activate the relays accordingly
+if (lightSensorV alue < 100) {
+// It's dark, activate relay 2 to turn on the light
+digitalWrite(relay2Pin, HIGH);
+} else {
+// It's light, deactivate relay 2
+digitalWrite(relay2Pin, LOW);
+}
+// Wait for 1 second before the next loop
+delay(1000);
+}
